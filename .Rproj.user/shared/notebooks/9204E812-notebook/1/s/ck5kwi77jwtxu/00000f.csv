@@ -1,0 +1,5 @@
+"0","plot(1,1,type=""n"",log=""y"","
+"0","     xlim=c(max(apply(do.call(rbind.data.frame,data)[c(""max_ma"",""min_ma"")],1,mean),na.rm=T),250),"
+"0","     ylim=range(do.call(rbind.data.frame,data)$n_occs,na.rm=T)+1,"
+"0","     xlab=""time(Ma)"",ylab=""log(occurrences)"","
+"0","     main=paste0(taxon,"" occurrences (logged)""))"

@@ -1,0 +1,53 @@
+---
+title: "Geographic bias"
+output: html_notebook
+---
+```{r}
+options(stringsAsFactors = F)
+require(jsonlite);require(httr);require(paleobioDB);require(beepr);require(remotes)
+remotes::install_github('GwenAntell/divvy@main')remotes::install_github("jannes-m/RQGIS")
+require(divvy);require(RQGIS)
+```
+Download the PBDB data by continent for a particular taxon.
+```{r}
+taxon<-"Brachiopoda"
+conts<-read.csv("https://paleobiodb.org/data1.2/config.txt?show=continents")
+conts<-rbind(conts,c("con","All","NA"))
+cont.abbr<-conts$continent_code
+data<-vector(mode="list",length(cont.abbr))
+for (i in 1:(length(cont.abbr)-1)){
+  call<-paste0("https://paleobiodb.org/data1.2/occs/quickdiv.csv?base_name=",taxon,"&continent=",cont.abbr[i],"&count=genera",collapse="")
+  data[[i]]<-as.data.frame(read.csv(call))
+}
+call<-paste0("https://paleobiodb.org/data1.2/occs/quickdiv.csv?base_name=",taxon,"&count=genera")
+data[[length(cont.abbr)]]<-as.data.frame(read.csv(call))
+names(data)<-conts$continent_name
+contColors<-c(rainbow(length(cont.abbr)-1),"black");names(contColors)<-conts$continent_name
+```
+All occurrences plotted with logarithmic y-axis:
+```{r}
+plot(1,1,type="n",log="y",
+     xlim=c(max(apply(do.call(rbind.data.frame,data)[c("max_ma","min_ma")],1,mean),na.rm=T),250),
+     ylim=range(do.call(rbind.data.frame,data)$n_occs,na.rm=T)+1,
+     xlab="time(Ma)",ylab="log(occurrences)",
+     main=paste0(taxon," occurrences (logged)"))
+for(i in 1:length(cont.abbr)){time<-apply(data[i][[1]][c("max_ma","min_ma")],1,mean);points(cbind(time,data[i][[1]]["n_occs"]+1),type="l",xlim=rev(range(time)),col=contColors[i])}  ;legend("topleft",lty=1,toupper(names(contColors)[c(2,1,3:length(cont.abbr))]),col=contColors,bty="n",cex=0.7)
+```
+All occurrences plotted with linear y-axis:
+```{r}
+plot(1,1,type="n",log="y",
+     xlim=c(max(apply(do.call(rbind.data.frame,data)[c("max_ma","min_ma")],1,mean),na.rm=T),250),
+     ylim=range(do.call(rbind.data.frame,data)$n_occs,na.rm=T)+1,
+     xlab="time(Ma)",ylab="log(occurrences)",
+     main=paste0(taxon," occurrences (logged)"))
+for(i in 1:length(cont.abbr)){time<-apply(data[i][[1]][c("max_ma","min_ma")],1,mean);points(cbind(time,data[i][[1]]["n_occs"]+1),type="l",xlim=rev(range(time)),col=contColors[i])}  ;legend("topleft",lty=1,toupper(names(contColors)[c(2,1,3:length(cont.abbr))]),col=contColors,bty="n",cex=0.7)
+```
+Genera (calculated via quickdiv API call):
+```{r}
+plot(1,1,type="n",
+     xlim=c(max(apply(do.call(rbind.data.frame,data)[c("max_ma","min_ma")],1,mean),na.rm=T),250),
+     ylim=range(do.call(rbind.data.frame,data)$sampled_in_bin,na.rm=T),xlab="time(Ma)",ylab="genera",
+     main=paste0(taxon," diversity"))
+for(i in 1:length(cont.abbr)){  time<-apply(data[i][[1]][c("max_ma","min_ma")],1,mean);  points(cbind(time,data[i][[1]]["sampled_in_bin"]),type="l",xlim=rev(range(time)),col=contColors[i])};  legend("topleft",lty=1,toupper(names(contColors)[c(2,1,3:length(cont.abbr))]),col=contColors,bty="n",cex=0.6)
+```
+

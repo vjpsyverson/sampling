@@ -1,0 +1,4 @@
+"0","plot(1,1,type=""n"","
+"0","     xlim=c(max(apply(do.call(rbind.data.frame,data)[c(""max_ma"",""min_ma"")],1,mean),na.rm=T),250),"
+"0","     ylim=range(do.call(rbind.data.frame,data)$sampled_in_bin,na.rm=T),xlab=""time(Ma)"",ylab=""genera"","
+"0","     main=paste0(taxon,"" diversity""))"
